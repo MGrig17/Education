@@ -132,7 +132,7 @@ int pop_forward(subforwardlist **sfl){
 };
 
 //добавление элемента с порядковым номером where ********************************************************************
-bool push_where(subforwardlist **sfl, unsigned int where, int d){
+bool push_where1(subforwardlist **sfl, unsigned int where, int d){
     if (sfl == NULL) {
     return 0;
   } 
@@ -140,16 +140,28 @@ bool push_where(subforwardlist **sfl, unsigned int where, int d){
     new_list->data = d; // добавили дату
     subforwardlist* tmp; // создаем тмп
     tmp = *sfl; // это  по сути счетчик-указатель! или временная переменная
-    unsigned int m = 0;
+    
     
     if (where == 0){
         push_forward(sfl, d);
     }
     else {
-        while (m != where-1) {
-        m+=1;
+    	
+    	if (tmp == NULL){
+    		return 0;
+    	}
+    	else {
+    		unsigned int m = 1;
+    	
+        	while (m != where) {
+        	m+=1;
+        	tmp = tmp->next;
+        	}
+        	new_list->next=tmp->next;
+        	tmp->next=new_list;              
         
-            if (tmp != 0){
+        }
+           /* if (tmp != 0){
             
                 if (tmp->next != NULL){
                     tmp = tmp->next;   
@@ -159,20 +171,35 @@ bool push_where(subforwardlist **sfl, unsigned int where, int d){
                 }
             new_list->next=tmp->next; // 
             tmp->next=new_list;
-            }
+            }*/
         
-            else {
-            
-            }
-        } 
-            
-    }
-        
-        
-    
-    
-    return 0; 
+           
+        }
+    return 0;
 };
+
+
+bool push_where(subforwardlist **sfl, unsigned int where, int d) {
+        subforwardlist* new_list= new subforwardlist;
+        new_list->data=d;
+        subforwardlist*tmp;
+        tmp =*sfl;
+
+
+        if (tmp==NULL) {return 0; }
+        else {
+        for (unsigned int i=0;i!=where;i++) {
+            tmp=tmp->next;
+        }
+        new_list->next=tmp->next;
+        tmp->next=new_list;
+
+        }
+
+return 0 ;
+}
+
+
 //**********************************************************************************************************************
 //удаление элемента с порядковым номером where----------------------------------------------------------------------------------------------------------------------
 /*int erase_where(subforwardlist **sfl, unsigned int where){
@@ -213,7 +240,7 @@ void clear1(subforwardlist  **sfl){
     tmp = *sfl;
     // если пустой:
     if (*sfl == NULL) {
-        cout << 0 << endl;
+        //cout << 0 << endl;
     }
     // не пустой:
     else {
@@ -245,7 +272,7 @@ unsigned int size(subforwardlist  *sfl){
     subforwardlist* tmp;
     tmp = sfl;
     unsigned int size = 0;
-    while (tmp->next != NULL) {
+    while (tmp != NULL) {
         size++;
         tmp = tmp->next;
     }
@@ -255,7 +282,7 @@ unsigned int size(subforwardlist  *sfl){
 };
 
 void clear(subforwardlist **sfl) {
-cout << "!!!!!!!"<< endl;
+//cout << "!!!!!!!"<< endl;
     while (*sfl != NULL) {
         pop_forward(sfl);
         
@@ -272,13 +299,28 @@ int main (){
    subforwardlist* sfl;
    init(&sfl);
    
-   cout << "push_forward(&sfl, 100) " << push_forward(&sfl, 100) << endl;
+   push_back(&sfl, 100);
+   push_back(&sfl, 100);
+   //push_back(&sfl, 100);
+   
+   cout << "size = "<< size(sfl) << endl;
+   
+   cout << "push_where " << push_where1(&sfl, 2, 666) << endl;
+   
+   cout << "size = "<< size(sfl) << endl;
+   
+   cout << "elements: "<< endl;
+   
+   cout << "size = "<< size(sfl) << endl;
+   /*
    do {
       cout << sfl -> data << endl;
       sfl = sfl->next;
    } while (sfl != NULL);
+   */
+   cout << "size = "<< size(sfl) << endl;
    
-   clear1(&sfl); 
+   clear(&sfl); 
    
    
     return 0;
