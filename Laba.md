@@ -618,94 +618,45 @@ int main() {
 **Код**:
 ```cpp
 #include <iostream>
-#include <forward_list>
-#include <list>
-#include <chrono>
 #include <fstream>
+#include <list>
+#include <forward_list>
+#include <chrono>
 
-template<typename T>
-class subforward_list {
-    struct Node {
-        T data;
-        Node* next;
-        Node(const T& val) : data(val), next(nullptr) {}
-    };
-    
-    Node* head;
-    size_t size_;
-    
-public:
-    subforward_list() : head(nullptr), size_(0) {}
-    
-    ~subforward_list() {
-        clear();
-    }
-    
-    void push_front(const T& val) {
-        Node* new_node = new Node(val);
-        new_node->next = head;
-        head = new_node;
-        size_++;
-    }
-    
-    void pop_front() {
-        if (!head) return;
-        Node* temp = head;
-        head = head->next;
-        delete temp;
-        size_--;
-    }
-    
-    void clear() {
-        while (head) {
-            pop_front();
-        }
-    }
-    
-    size_t size() const { return size_; }
-};
+void measure_pop_front(std::ofstream& out, int size) {
+    // Заполняем списки данными
+    std::list<int> list(size, 1); // заполняем size элементами
+    std::forward_list<int> flist(size, 1);
 
-template<typename List>
-double measure_pop_front(List& lst, size_t size) {
-    // Заполняем список
-    lst.clear();
-    for (size_t i = 0; i < size; i++) {
-        lst.push_front(i);
+    // Тест для std::list
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < size; ++i) {
+        list.pop_front();
     }
-    
-    auto start = std::chrono::steady_clock::now();
-    for (size_t i = 0; i < size; i++) {
-        lst.pop_front();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto list_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+
+    // Тест для std::forward_list
+    start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < size; ++i) {
+        flist.pop_front();
     }
-    auto end = std::chrono::steady_clock::now();
-    
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / static_cast<double>(size);
+    end = std::chrono::high_resolution_clock::now();
+    auto flist_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+
+    // Запись в CSV
+    out << size << "," << list_time << "," << flist_time << "\n";
 }
 
 int main() {
-    std::ofstream out("pop_front_data.csv");
-    out << "size,std_list,std_forward_list,subforward_list\n";
-    
-    const size_t min_size = 1000;
-    const size_t max_size = 100000;
-    const size_t step = 1000;
-    
-    for (size_t size = min_size; size <= max_size; size += step) {
-        std::list<int> std_lst;
-        std::forward_list<int> std_flst;
-        subforward_list<int> sub_flst;
-        
-        double t1 = measure_pop_front(std_lst, size);
-        double t2 = measure_pop_front(std_flst, size);
-        double t3 = measure_pop_front(sub_flst, size);
-        
-        out << size << "," << t1 << "," << t2 << "," << t3 << "\n";
-        std::cout << "Size: " << size 
-                  << " - list: " << t1 
-                  << " ns, forward_list: " << t2 
-                  << " ns, subforward_list: " << t3 << " ns\n";
+    std::ofstream out("pop_front_results.csv");
+    out << "size,list_time,forward_list_time\n";
+
+    // Измеряем для разных размеров списка
+    for (int size = 1000; size <= 100000; size += 1000) {
+        measure_pop_front(out, size);
     }
-    
+
     out.close();
     return 0;
 }
